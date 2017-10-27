@@ -1882,6 +1882,12 @@ static int m_quit_prevstate;
 static qboolean wasInMenus;
 
 static const char *const quitMessage[] = {
+#ifdef GEKKO    
+    "   This is a console    ",
+    "  port of Quake so you  ",
+    "  can't quit this way.  ",
+    "     Press any key.     ",
+#else
     "  Are you gonna quit    ",
     "  this game just like   ",
     "   everything else?     ",
@@ -1921,6 +1927,7 @@ static const char *const quitMessage[] = {
     "  throw a blanket-party ",
     "   for you next time!   ",
     "                        "
+#endif
 };
 
 
@@ -1934,18 +1941,20 @@ M_Menu_Quit_f(void)
     m_quit_prevstate = m_state;
     m_state = m_quit;
     m_entersound = true;
+#ifdef GEKKO
+    msgNumber = 0;
+#else
     msgNumber = rand() & 7;
+#endif
 }
 
 
 static void
 M_Quit_Key(int key)
 {
-#if 0
-    switch (key) {
-    case K_ESCAPE:
-    case 'n':
-    case 'N':
+#ifdef GEKKO
+/*    case 'n':
+    case 'N':*/
 	if (wasInMenus) {
 	    m_state = (m_state_enum)m_quit_prevstate;
 	    m_entersound = true;
@@ -1953,7 +1962,7 @@ M_Quit_Key(int key)
 	    key_dest = key_game;
 	    m_state = m_none;
 	}
-	break;
+/*	break;
 
     case 'Y':
     case 'y':
@@ -1963,7 +1972,7 @@ M_Quit_Key(int key)
 
     default:
 	break;
-    }
+    }*/
 #else
    extern bool shutdown_core;
 	key_dest = key_console;

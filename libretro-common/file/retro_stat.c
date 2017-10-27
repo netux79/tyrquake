@@ -144,18 +144,6 @@ static bool path_stat(const char *path, enum stat_mode mode, int32_t *size)
    return false;
 }
 
-/**
- * path_is_directory:
- * @path               : path
- *
- * Checks if path is a directory.
- *
- * Returns: true (1) if path is a directory, otherwise false (0).
- */
-bool path_is_directory(const char *path)
-{
-   return path_stat(path, IS_DIRECTORY, NULL);
-}
 
 bool path_is_character_special(const char *path)
 {

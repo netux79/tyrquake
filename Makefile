@@ -7,8 +7,8 @@ ifneq ($(GIT_VERSION)," unknown")
 	CFLAGS += -DGIT_VERSION=\"$(GIT_VERSION)\"
 endif
 
-USE_CODEC_WAVE=1
-USE_CODEC_FLAC=1
+USE_CODEC_WAVE=0
+USE_CODEC_FLAC=0
 USE_CODEC_VORBIS=1
 USE_CODEC_MP3=0
 USE_CODEC_OPUS=0
@@ -417,7 +417,9 @@ ifeq ($(USE_CODEC_WAVE),1)
 CFLAGS+= -DUSE_CODEC_WAVE
 endif
 
+ifeq ($(USE_CODEC_FLAC),1)
 CFLAGS+= -DUSE_CODEC_FLAC
+endif
 
 ifeq ($(USE_CODEC_OPUS),1)
 # opus and opusfile put their *.h under <includedir>/opus,

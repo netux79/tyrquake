@@ -409,33 +409,33 @@ gp_layout_t gp_layouts[2] = {
    {
       "2: Old layout",
       {
-         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "D-Pad Left" },
+         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_LEFT,  "Strafe Left" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_UP,    "D-Pad Up" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_DOWN,  "D-Pad Down" },
-         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "D-Pad Right" },
+         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_RIGHT, "Strafe Right" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_B,     "Jump" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_A,     "Cycle Weapon" },
-         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Freelook" },
-         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Fire" },
-         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,     "Strafe Left" },
-         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,     "Strafe Right" },
+         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_X,     "Swim down" },
+         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_Y,     "Freelook" },
+         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L,     "Toggle Run Mode" },
+         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R,     "Fire" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L2,    "Look Up" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R2,    "Look Down" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_L3,    "Swim down" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_R3,    "Swim up" },
-         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,"Toggle Run Mode" },
+         { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_SELECT,"Toggle console" },
          { 0, RETRO_DEVICE_JOYPAD, 0, RETRO_DEVICE_ID_JOYPAD_START, "Menu" },
          { 0 },
       },
       {
-         {"JOY_LEFT",  "+left"},         {"JOY_RIGHT", "+right"},
+         {"JOY_LEFT",  "+moveleft"},     {"JOY_RIGHT", "+moveright"},
          {"JOY_DOWN",  "+back"},         {"JOY_UP",    "+forward"},
          {"JOY_B",     "+jump"} ,        {"JOY_A",     "impulse 10"},
-         {"JOY_X",     "+klook"},        {"JOY_Y",     "+attack"},
-         {"JOY_L",     "+moveleft"},     {"JOY_R",     "+moveright"},
+         {"JOY_X",     "+movedown"},     {"JOY_Y",     "+klook"},
+         {"JOY_L",     "+togglewalk"},   {"JOY_R",     "+attack"},
          {"JOY_L2",    "+lookup"},       {"JOY_R2",    "+lookdown"},
          {"JOY_L3",    "+movedown"},     {"JOY_R3",    "+moveup"},
-         {"JOY_SELECT","+togglewalk"},   {"JOY_START", "togglemenu"},
+         {"JOY_SELECT","toggleconsole"}, {"JOY_START", "togglemenu"},
          { 0 },
       }
    }
@@ -462,10 +462,13 @@ void gp_layout_set_bind(gp_layout_t gp_layout)
 void retro_set_environment(retro_environment_t cb)
 {
    struct retro_variable variables[] = {
+#ifndef GEKKO
       { "tyrquake_colored_lighting", "Colored lighting (restart); disabled|enabled" },
+#endif
       { "tyrquake_resolution",
          "Resolution (restart); 320x200|640x400|960x600|1280x800|1600x1000|1920x1200|320x240|320x480|360x200|360x240|360x400|360x480|400x224|480x272|512x224|512x240|512x384|512x512|640x224|640x240|640x448|640x480|720x576|800x480|800x600|960x720|1024x768|1280x720|1600x900|1920x1080" },
       { "tyrquake_rumble", "Rumble; disabled|enabled" },
+      { "tyrquake_invert_y_axis", "Invert Y Analog Axis; disabled|enabled" },
       { "tyrquake_retropad_layout", layouts },
       { NULL, NULL },
    };
@@ -690,15 +693,16 @@ void retro_unset_rumble_strong(void)
 
    rumble.set_rumble_state(0, RETRO_RUMBLE_STRONG, 0);
 }
-
+#ifndef GEKKO
 extern int coloredlights;
-
+#endif
 bool state_rumble;
+float analog_y_dir = 1.0;
 
 static void update_variables(bool startup)
 {
    struct retro_variable var;
-
+#ifndef GEKKO
    var.key = "tyrquake_colored_lighting";
    var.value = NULL;
 
@@ -711,7 +715,7 @@ static void update_variables(bool startup)
    }
    else
       coloredlights = 0;
-   
+#endif
    var.key = "tyrquake_resolution";
    var.value = NULL;
 
@@ -760,6 +764,17 @@ static void update_variables(bool startup)
       else
          state_rumble = true;
    }
+   
+   var.key = "tyrquake_invert_y_axis";
+   var.value = NULL;
+
+   if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+   {
+      if (strcmp(var.value, "disabled") == 0)
+         analog_y_dir = 1.0;
+      else
+         analog_y_dir = -1.0;
+   }   
 
 }
 
@@ -799,6 +814,7 @@ void retro_run(void)
 
    if (environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE_UPDATE, &updated) && updated)
       update_variables(false);
+
    if (!has_set_username)
    {
       update_env_variables();
@@ -875,16 +891,16 @@ bool retro_load_game(const struct retro_game_info *info)
    else
       log_cb(RETRO_LOG_INFO, "Rumble environment not supported.\n");
 
+#if (defined(HW_RVL) && !defined(WIIU)) || defined(_XBOX1)
+   MEMSIZE_MB = 16;
+#else
    MEMSIZE_MB = DEFAULT_MEMSIZE_MB;
-
+#endif
    if ( strstr(path_lower, "id1") ||
         strstr(path_lower, "quoth") ||
         strstr(path_lower, "hipnotic") ||
         strstr(path_lower, "rogue") )
    {
-#if (defined(HW_RVL) && !defined(WIIU)) || defined(_XBOX1)
-      MEMSIZE_MB = 16;
-#endif
       extract_directory(g_rom_dir, g_rom_dir, sizeof(g_rom_dir));
    }
 
@@ -1394,8 +1410,9 @@ IN_Move(usercmd_t *cmd)
       // Right stick Look
       rsx = input_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
                RETRO_DEVICE_ID_ANALOG_X);
+      // Change the direction of the Y axis depending on the core option.
       rsy = input_cb(0, RETRO_DEVICE_ANALOG, RETRO_DEVICE_INDEX_ANALOG_RIGHT,
-               RETRO_DEVICE_ID_ANALOG_Y);
+               RETRO_DEVICE_ID_ANALOG_Y) * analog_y_dir;
 
       if (rsx > ANALOG_DEADZONE || rsx < -ANALOG_DEADZONE) {
          if (rsx > ANALOG_DEADZONE)
@@ -1412,7 +1429,7 @@ IN_Move(usercmd_t *cmd)
             rsy = rsy - ANALOG_DEADZONE;
          if (rsy < -ANALOG_DEADZONE)
             rsy = rsy + ANALOG_DEADZONE;
-         cl.viewangles[PITCH] -= rsy * sensitivity.value / ANALOG_RANGE;
+         cl.viewangles[PITCH] += rsy * sensitivity.value / ANALOG_RANGE;
       }
 
       if (cl.viewangles[PITCH] > 80)
